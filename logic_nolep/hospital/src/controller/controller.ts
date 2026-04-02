@@ -1,9 +1,9 @@
-import Employee from "../models/employee.js";
-import Patient from "../models/patient.js";
-import HospitalView from "../view/view.js";
+import { Employee } from "../models/employee.js";
+import { Patient } from "../models/patient.js";
+import { HospitalView } from "../view/view.js";
 
-class HospitalController {
-    static register(username: string, password: string, role: string) {
+export class HospitalController {
+    public static register(username: string, password: string, role: string) {
         Employee.register(username, password, role, (err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message)
@@ -15,7 +15,7 @@ class HospitalController {
         });
     }
 
-    static login(username: string, password: string) {
+    public static login(username: string, password: string) {
         Employee.login(username, password, (err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message);
@@ -27,7 +27,7 @@ class HospitalController {
         });
     }
 
-    static logout() {
+    public static logout() {
         Employee.logout((err) => {
             if (err) {
                 return HospitalView.errorView(err.message);
@@ -37,14 +37,14 @@ class HospitalController {
         })
     }
 
-    static addPatient(args: string[]) {
+    public static addPatient(args: string[]) {
         Employee.getCurrentUser((err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message);
             }
 
             const employees = data as Employee[];
-            const user: Employee | undefined = employees.find(u => u.login === true);
+            const user = employees.find(u => u.login === true);
 
             if (user?.position !== 'dokter') {
                 return HospitalView.errorView('Only dokter can add Patient!');
@@ -66,14 +66,14 @@ class HospitalController {
         });
     }
 
-    static updatePatient(args: string[]) {
+    public static updatePatient(args: string[]) {
         Employee.getCurrentUser((err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message);
             }
 
             const employees = data as Employee[];
-            const user: Employee | undefined = employees.find(u => u.login === true);
+            const user = employees.find(u => u.login === true);
 
             if (user?.position !== 'dokter') {
                 return HospitalView.errorView('Only dokter can update Patient!');
@@ -95,14 +95,14 @@ class HospitalController {
         });
     }
 
-    static deletePatient(args: string[]): void {
+    public static deletePatient(args: string[]): void {
         Employee.getCurrentUser((err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message);
             }
 
             const employees = data as Employee[];
-            const user: Employee | undefined = employees.find(u => u.login === true);
+            const user = employees.find(u => u.login === true);
 
             if (user?.position !== 'dokter') {
                 return HospitalView.errorView('Only dokter can delete Patient!');
@@ -122,14 +122,14 @@ class HospitalController {
         });
     }
 
-    static show(type: string): void {
+    public static show(type: string): void {
         Employee.getCurrentUser((err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message);
             }
 
             const employees = data as Employee[];
-            const user: Employee | undefined = employees.find(u => u.login === true);
+            const user = employees.find(u => u.login === true);
 
             if (type === 'employee') {
                 if (user?.position !== 'admin') {
@@ -151,7 +151,8 @@ class HospitalController {
                 if (user?.position !== 'dokter') {
                     return HospitalView.errorView('Only dokter can see list of patient!');
                 }
-                 Patient.findAll((err, data) => {
+
+                Patient.findAll((err, data) => {
                     if (err) {
                         return HospitalView.errorView(err.message);
                     }
@@ -164,7 +165,7 @@ class HospitalController {
         });
     }
 
-    static findPatientBy(key: string, value: string): void {
+    public static findPatientBy(key: string, value: string): void {
         Employee.getCurrentUser((err, data) => {
             if (err) {
                 return HospitalView.errorView(err.message);
@@ -189,7 +190,7 @@ class HospitalController {
         });
     }
 
-    static help() {
+    public static help() {
         console.log(`
 > node index.js register <username> <password> <jabatan> 
 > node index.js login <username> <password>
@@ -202,5 +203,3 @@ class HospitalController {
             `)
     }
 }
-
-export default HospitalController;

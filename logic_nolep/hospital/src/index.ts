@@ -1,6 +1,6 @@
 const command = process.argv[2];
-const argument: string[] | undefined = process.argv.slice(3);
-import HospitalController from "./controller/controller.js";
+const argument: string[] = process.argv.slice(3);
+import { HospitalController } from "./controller/controller.js";
 
 switch (command) {
     case 'register':

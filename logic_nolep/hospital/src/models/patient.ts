@@ -1,13 +1,13 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 type FetchCallback = (error: Error | null, data?: Patient[]) => void;
 const filePath = path.resolve(process.cwd(), 'src', 'db', 'patient.json');
 
-class Patient {
-    id: number;
-    username: string;
-    disease: string[];
+export class Patient {
+    public id: number;
+    public username: string;
+    public disease: string[];
 
     constructor(id: number, username: string, disease: string[]) {
         this.id = id;
@@ -15,7 +15,7 @@ class Patient {
         this.disease = disease;
     }
 
-    static findAll(cb: FetchCallback): void {
+    public static findAll(cb: FetchCallback): void {
         fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) {
                 return cb(err);
@@ -29,7 +29,7 @@ class Patient {
         });
     }
 
-    static saveAll(data: Patient[], cb: FetchCallback): void {
+    public static saveAll(data: Patient[], cb: FetchCallback): void {
         fs.writeFile(filePath, JSON.stringify(data, null, 2), (err) => {
             if (err) {
                 return cb(err);
@@ -38,7 +38,7 @@ class Patient {
         });
     }
 
-    static add(id: number, username: string, disease: string[], cb: FetchCallback): void {
+    public static add(id: number, username: string, disease: string[], cb: FetchCallback): void {
         this.findAll((err, data) => {
             if (err) {
                 return cb(err);
@@ -46,7 +46,7 @@ class Patient {
 
             const patientsData: Patient[] = data || [];
 
-            const isExists: Patient | undefined = patientsData.find(p => p.id === id);
+            const isExists = patientsData.find(p => p.id === id);
             if (isExists) {
                 return cb(new Error('ID already exists!'));
             }
@@ -63,7 +63,7 @@ class Patient {
         });
     }
 
-    static update(id: number, username: string, disease: string[], cb: FetchCallback): void {
+    public static update(id: number, username: string, disease: string[], cb: FetchCallback): void {
         this.findAll((err, data) => {
             if (err) {
                 return cb(err);
@@ -92,7 +92,7 @@ class Patient {
         });
     }
 
-    static delete(id: number, cb: FetchCallback): void {
+    public static delete(id: number, cb: FetchCallback): void {
         this.findAll((err, data) => {
             if (err) {
                 return cb(err);
@@ -114,5 +114,3 @@ class Patient {
         })
     }
 }
-
-export default Patient;

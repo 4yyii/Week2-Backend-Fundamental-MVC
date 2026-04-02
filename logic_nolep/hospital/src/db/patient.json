@@ -1,16 +1,9 @@
 [
   {
-    "id": 1,
-    "username": "ucup",
+    "id": 2,
+    "username": "dudung",
     "disease": [
       "demam"
-    ]
-  },
-  {
-    "id": 2,
-    "username": "otong",
-    "disease": [
-      "pilek"
     ]
   }
 ]

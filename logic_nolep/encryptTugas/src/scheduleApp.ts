@@ -1,10 +1,6 @@
-import moment from "moment";
+import moment from 'moment';
 
-function scheduleTask(task: string): string {
-    const now = moment().format('LLLL');
-    const future = moment().add(3, 'd').format('LLLL');
-    const message = `Tugas kamu adalah ${task} dari ${now} sampai ${future}`;
-    return message;
+export const scheduleTask = () => {
+    const time = moment().add(7, 'd');
+    console.log(`Schedule task for: ${time}`);
 }
-
-export default scheduleTask;

@@ -5,15 +5,13 @@
   "main": "in-async.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/in-async.js",
-    "dev": "tsc && node dist/in-async.js",
-    "watch": "tsc -w"
+    "dev": "tsx watch src/in-async.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

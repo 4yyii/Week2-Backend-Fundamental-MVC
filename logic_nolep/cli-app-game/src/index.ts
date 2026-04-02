@@ -1,7 +1,7 @@
-import readline from 'readline';
-import fs from 'fs/promises';
+import readline from 'node:readline';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import chalk from 'chalk';
-import path from 'path';
 
 const filePath = path.resolve(process.cwd(), 'src', 'db', 'users.json');
 
@@ -32,7 +32,7 @@ async function saveUsers() {
     await fs.writeFile(filePath, JSON.stringify(users, null, 2));
 }
 
-function ask(query: string) {
+function ask(query: string): Promise<string> {
     return new Promise<string>((resolve) => rl.question(query, resolve));
 }
 
@@ -123,12 +123,6 @@ async function mainMenu() {
 
 async function showLeaderBoard(): Promise<void> {
     console.log(chalk.yellow('\n--- Papan Skor (Top 10) ---'));
-
-    const sorted: User[] = users.filter(u => u.highestScore !== null).sort((a, b) => a.highestScore - b.highestScore).slice(0, 10);
-    if (sorted.length === 0) {
-        console.log(chalk.red('Nothing score!'));
-        return mainMenu();
-    }
 
     users.forEach((u, i) => {
         console.log(chalk.green(`${i + 1}. ${u.username}: ${u.highestScore} percobaan`));

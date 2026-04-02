@@ -1,12 +1,12 @@
 [
   {
-    "username": "rafli",
+    "username": "Ayi",
     "password": "12345",
     "position": "dokter",
-    "login": true
+    "login": false
   },
   {
-    "username": "arifin",
+    "username": "Ucup",
     "password": "12345",
     "position": "admin",
     "login": false
