@@ -1,6 +1,8 @@
-import moment from 'moment';
+import moment from "moment";
 
-export const scheduleTask = () => {
-    const time = moment().add(7, 'd');
-    console.log(`Schedule task for: ${time}`);
-}
+const scheduleTask = (task: string) => {
+  const schedule = moment().add(3, "d");
+  console.log(`Scheduled task for: ${task} ${schedule}`);
+};
+
+export default scheduleTask;
