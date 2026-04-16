@@ -16,7 +16,7 @@ const getUserDataCallback = (userId: number, callback: cb) => {
   if (user) {
     callback(null, user);
   } else {
-    console.error(new Error("User not found"));
+    console.error(`User with id ${userId} not found`);
   }
 };
 
@@ -24,7 +24,7 @@ const getUserDataPromise = (userId: number) => {
   return new Promise((resolve, reject) => {
     const user = users.find((u) => u.id === userId);
     if (!user) {
-      reject(new Error("User not found"));
+      reject(new Error(`User with id ${userId} not found`));
     }
     resolve(user);
   });
@@ -33,9 +33,10 @@ const getUserDataPromise = (userId: number) => {
 const getUserDataAsync = async (userId: number) => {
   try {
     const user = users.find((u) => u.id === userId);
-    if (user) {
-      return user;
+    if (!user) {
+      console.error("User not found");
     }
+    return user;
   } catch (err) {
     throw err;
   }
