@@ -1,143 +1,144 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import * as fs from "node:fs";
+import path from "node:path";
 
-type FetchCallback = (error: Error | null, data?: Employee[]) => void;
-const filePath = path.resolve(process.cwd(), 'src', 'db', 'employee.json');
+const filePath = path.resolve("src", "db", "employee.json");
+type callback = (err: Error | null, result?: Employee[]) => void;
 
 export class Employee {
-    public username: string;
-    public password: string;
-    public position: string;
-    public login: boolean;
+  public username: string;
+  public password: string;
+  public position: string;
+  public login: boolean;
 
-    public constructor(username: string, password: string, position: string) {
-        this.username = username;
-        this.password = password;
-        this.position = position;
-        this.login = false;
-    }
+  private constructor(username: string, password: string, position: string) {
+    this.username = username;
+    this.password = password;
+    this.position = position;
+    this.login = false;
+  }
 
-    public static findAll(cb: FetchCallback): void {
-        fs.readFile(filePath, 'utf8', (err, data) => {
-            if (err) {
-                return cb(err);
-            }
+  public static findAll(cb: callback) {
+    fs.readFile(filePath, "utf8", (err, data) => {
+      if (err) {
+        cb(err);
+      } else {
+        cb(null, JSON.parse(data));
+      }
+    });
+  }
 
-            try {
-                cb(null, JSON.parse(data));
-            } catch (error) {
-                cb(new Error('File corrupt or invalid JSON format'));
-            }
-        });
-    }
+  public static saveAll(data: Employee[], cb: callback) {
+    fs.writeFile(filePath, JSON.stringify(data, null, 2), (err) => {
+      if (err) {
+        cb(err);
+      } else {
+        cb(null, data);
+      }
+    });
+  }
 
-    public static saveAll(data: Employee[], cb: FetchCallback): void {
-        fs.writeFile(filePath, JSON.stringify(data, null, 2), (err) => {
-            if (err) {
-                return cb(err);
-            }
-            cb(null, data);
-        });
-    }
-
-    public static register(username: string, password: string, role: string, cb: FetchCallback): void {
-        const allowedRoles: string[] = ['admin', 'dokter'];
+  public static register(
+    name: string,
+    password: string,
+    role: string,
+    cb: callback,
+  ) {
+    const allowedRoles: string[] = ["dokter", "admin"];
+    this.findAll((err, data) => {
+      if (err) {
+        cb(err);
+      } else {
         if (!allowedRoles.includes(role)) {
-            return cb(new Error('Choose one of them (admin/dokter)'));
+          console.error("Role not match, choose (dokter/admin)!");
+          return;
         }
-        
-        this.findAll((err, data) => {
-            if (err) {
-                return cb(err);
-            }
-
-            const employeesData: Employee[] = data || [];
-            const user = employeesData.find(u => u.username === username);
-
-            if (user) {
-                return cb(new Error('Username already taken!'));
-            }
-
-            const newEmployee: Employee = new Employee(username, password, role);
-            employeesData.push(newEmployee);
-
-            this.saveAll(employeesData, (err) => {
-                if (err) {
-                    return cb(err);
-                }
-                cb(null, employeesData)
-            });
+        const dataEmployee = data || [];
+        const newEmployee = new Employee(name, password, role);
+        dataEmployee.push(newEmployee);
+        this.saveAll(dataEmployee, (err) => {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, dataEmployee);
+          }
         });
-    }
+      }
+    });
+  }
 
-    public static login(username: string, password: string, cb: FetchCallback): void {
-        this.findAll((err, data) => {
-            if (err) {
-                return cb(err);
-            }
+  public static login(username: string, password: string, cb: callback) {
+    this.findAll((err, data) => {
+      if (err) {
+        cb(err);
+      } else {
+        const dataEmployee = data || [];
 
-            const employeesData: Employee[] = data || [];
-            const user = employeesData.find(u => u.username === username && u.password === password);
+        const isLogin = data?.find((u) => u.login === true);
+        if (isLogin) {
+          console.error("Can not logged in together!");
+          return;
+        }
 
-            if (!user) {
-                return cb(new Error('Username or password invalid!'));
-            }
+        const employeeLogin = data?.find(
+          (u) => u.username === username && u.password === password,
+        );
+        if (!employeeLogin) {
+          console.error("Wrong username or password!");
+          return;
+        }
 
-            const isLogin = employeesData.find(u => u.login === true);
-            
-            if (isLogin) {
-                return cb(new Error('Cannot login together!'));
-            }
+        employeeLogin.login = true;
 
-            user.login = true;
-
-            this.saveAll(employeesData, (err) => {
-                if (err) {
-                    return cb(err);
-                }
-                cb(null, employeesData);
-            });
+        this.saveAll(dataEmployee, (err) => {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, dataEmployee);
+          }
         });
-    }
+      }
+    });
+  }
 
-    public static logout(cb: FetchCallback): void {
-        this.findAll((err, data) => {
-            if (err) {
-                return cb(err);
-            }
+  public static logout(cb: callback) {
+    this.findAll((err, data) => {
+      if (err) {
+        cb(err);
+      } else {
+        const dataEmployee = data || [];
 
-            const employeesData: Employee[] = data || [];
-            const user = employeesData.find(u => u.login === true);
+        const isLogin = data?.find((u) => u.login === true);
+        if (!isLogin) {
+          console.error("No one logged in!");
+          return;
+        } else {
+          isLogin.login = false;
+        }
 
-            if (!user) {
-                return cb(new Error('No one logged in!'));
-            }
-
-            user.login = false;
-
-            this.saveAll(employeesData, (err) => {
-                if (err) {
-                    return cb(err);
-                }
-                cb(null, employeesData);
-            });
+        this.saveAll(dataEmployee, (err) => {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, dataEmployee);
+          }
         });
-    }
+      }
+    });
+  }
 
-    public static getCurrentUser(cb: FetchCallback): void {
-        this.findAll((err, data) => {
-            if (err) {
-                return cb(err);
-            }
-
-            const employeesData: Employee[] = data || [];
-            const user = employeesData.find(u => u.login === true);
-
-            if (!user) {
-                return cb(new Error('Must login first!'));
-            }
-        
-            cb(null, employeesData)
-        })
-    }
+  public static currentUser(cb: callback) {
+    this.findAll((err, data) => {
+      if (err) {
+        return cb(err);
+      } else {
+        const dataEmployee = data || [];
+        const employee = data?.find((u) => u.login === true);
+        if (!employee) {
+          console.error("You must login first!");
+          return;
+        }
+        cb(null, dataEmployee);
+      }
+    });
+  }
 }

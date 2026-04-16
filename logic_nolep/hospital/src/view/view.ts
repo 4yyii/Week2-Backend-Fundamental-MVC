@@ -1,52 +1,53 @@
-import type { Employee } from "../models/employee.js"
-import type { Patient } from "../models/patient.js";
+import { Employee } from "@employee/employee.js";
+import type { Patient } from "@employee/patient.js";
 
 export class HospitalView {
-    public static errorView(msg: string): void {
-        console.error(msg)
-    }
+  public static errorView(err: Error | string) {
+    console.log(err);
+  }
 
-    public static registerView(user: Employee[]): void {
-        const data = user[user.length - 1];
-        console.log(`Register success. username: ${data?.username} | role: ${data?.position}. Total Employee: ${user.length}`);
-    }
+  public static registerView(employee: Employee[]) {
+    const data = employee[employee.length - 1];
+    console.log(
+      `Save data success. Welcome ${data?.username} (${data?.position}) | Total employee: ${employee.length}`,
+    );
+  }
 
-    public static loginView(user: Employee[]): void {
-        const login = user.find(u => u.login === true)
-        if (login) {
-            console.log(`Login success. Welcome ${login.username} (${login.position})`)
-        }
+  public static loginView(employee: Employee[]) {
+    const data = employee.find((u) => u.login === true);
+    if (data) {
+      console.log(`Login success. Hello ${data?.username} (${data.position})`);
     }
+  }
 
-    public static logoutView(): void {
-        console.log('Logout success');
-    }
+  public static logoutView() {
+    console.log("Logout success. GoodBye!");
+  }
 
-    public static addPatientView(patient: Patient[]): void {
-        const data = patient[patient.length - 1];
-        console.log(`Patient added: ${data?.username}`);
-    }
+  public static addPatientView(patient: Patient[]) {
+    const data = patient[patient.length - 1];
+    console.log(
+      `Successfully added patient ${data?.name} with id: ${data?.id}`,
+    );
+  }
 
-    public static updatePatientView(patient: Patient[]): void {
-        const updated = patient[0];
-        if (updated) {
-            console.log(`Patient updated: ${updated.username} with id ${updated.id}`);
-        }
-    }
+  public static updatePatientView(patient: Patient[]) {
+    console.log(`Successfully updated patient`);
+  }
 
-    public static deletePatientView(id: number): void {
-        console.log(`Patient deleted with id ${id}`)
-    }
+  public static deletePatientView(patient: Patient[]) {
+    console.log(`Successfully deleted patient`);
+  }
 
-    public static showEmployeeView(employee: Employee[]): void {
-        console.table(employee);
-    }
+  public static findPatientView(patient: Patient[]) {
+    console.table(patient);
+  }
 
-    public static showPatientView(patient: Patient[]): void {
-        console.table(patient);
-    }
+  public static showPatientView(patient: Patient[]) {
+    console.table(patient);
+  }
 
-    public static findPatientView(patient: Patient[]): void {
-        console.table(patient);
-    }
+  public static showEmployeeView(employee: Employee[]) {
+    console.table(employee);
+  }
 }

@@ -1,9 +1,12 @@
 [
   {
+    "id": 1,
+    "name": "dudung",
+    "diseases": ["pilek"]
+  },
+  {
     "id": 2,
-    "username": "dudung",
-    "disease": [
-      "demam"
-    ]
+    "name": "clancy",
+    "diseases": ["demam", "diare"]
   }
 ]
