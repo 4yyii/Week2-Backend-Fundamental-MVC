@@ -1,16 +1,14 @@
-import { Employee } from "@employee/employee.js";
-import { Patient } from "@employee/patient.js";
-import { HospitalView } from "@view/view.js";
+import Employee from "@employee/employee.js";
+import Patient from "@employee/patient.js";
+import HospitalView from "@view/view.js";
 
-export class HospitalController {
+class HospitalController {
   public static register(name: string, password: string, role: string) {
-    Employee.register(name, password, role, (err, employee) => {
+    Employee.register(name, password, role, (err, newEmployee) => {
       if (err) {
         HospitalView.errorView(err);
-      }
-
-      if (employee) {
-        HospitalView.registerView(employee);
+      } else {
+        HospitalView.registerView(newEmployee!);
       }
     });
   }
@@ -19,10 +17,8 @@ export class HospitalController {
     Employee.login(name, password, (err, employee) => {
       if (err) {
         HospitalView.errorView(err);
-      }
-
-      if (employee) {
-        HospitalView.loginView(employee);
+      } else {
+        HospitalView.loginView(employee!);
       }
     });
   }
@@ -31,147 +27,145 @@ export class HospitalController {
     Employee.logout((err) => {
       if (err) {
         HospitalView.errorView(err);
-      }
-      HospitalView.logoutView();
-    });
-  }
-
-  public static addPatient(args: string[]) {
-    Patient.add(args, (err, patient) => {
-      if (err) {
-        HospitalView.errorView(err);
-      }
-
-      if (patient) {
-        HospitalView.addPatientView(patient);
+      } else {
+        HospitalView.logoutView();
       }
     });
   }
 
-  public static updatePatient(args: string[]) {
-    Patient.update(args, (err, patient) => {
+  public static addPatient(id: number, name: string, diseases: string[]) {
+    Patient.add(id, name, diseases, (err, newPatient) => {
       if (err) {
         HospitalView.errorView(err);
-      }
-
-      if (patient) {
-        HospitalView.updatePatientView(patient);
+      } else {
+        HospitalView.addPatientView(newPatient!);
       }
     });
   }
 
-  public static deletePatient(args: string[]) {
-    Patient.delete(args, (err, patient) => {
+  public static updatePatient(id: number, name: string, diseases: string[]) {
+    Patient.update(id, name, diseases, (err) => {
       if (err) {
         HospitalView.errorView(err);
-      }
-
-      if (patient) {
-        HospitalView.deletePatientView(patient);
+      } else {
+        HospitalView.updatePatientView();
       }
     });
   }
 
-  public static findPatient(key: string, value: string) {
-    Employee.currentUser((err) => {
+  public static deletePatient(id: number) {
+    Patient.delete(id, (err) => {
       if (err) {
         HospitalView.errorView(err);
-      }
-
-      if (key === "name") {
-        Patient.findAll((err, data) => {
-          const isPatient = data?.find((u) => u.name === value);
-          if (err) {
-            HospitalView.errorView(err);
-          }
-
-          if (!isPatient) {
-            HospitalView.errorView(`Patient not found with name: ${value}`);
-            return;
-          }
-
-          if (isPatient) {
-            HospitalView.findPatientView([isPatient]);
-          }
-        });
-      }
-
-      if (key === "id") {
-        Patient.findAll((err, data) => {
-          const isPatient = data?.find((u) => u.id === Number(value));
-          if (err) {
-            HospitalView.errorView(err);
-          }
-
-          if (!isPatient) {
-            HospitalView.errorView(`Patient not found with id: ${value}`);
-            return;
-          }
-
-          if (isPatient) {
-            HospitalView.findPatientView([isPatient]);
-          }
-        });
+      } else {
+        HospitalView.deletePatientView();
       }
     });
   }
 
   public static show(type: string) {
-    const allowedtype: string[] = ["employee", "patient"];
     Employee.currentUser((err, data) => {
       if (err) {
         HospitalView.errorView(err);
+        return;
       }
 
-      if (!allowedtype.includes(type)) {
-        HospitalView.errorView("Type not match, choose (employee/patient)");
+      if (type === "patient") {
+        const isDokter = data?.find(
+          (u) => u.login === true && u.position === "dokter",
+        );
+
+        if (!isDokter) {
+          HospitalView.errorView(new Error("Only dokter can view patient"));
+          return;
+        }
+
+        Patient.findAll((err, data) => {
+          if (err) {
+            HospitalView.errorView(err);
+            return;
+          }
+
+          HospitalView.showPatientView(data!);
+        });
         return;
       }
 
       if (type === "employee") {
-        const admin = data?.find((u) => u.login === true);
-        if (admin?.position !== "admin") {
-          HospitalView.errorView("Only admin can see it");
+        const isAdmin = data?.find(
+          (u) => u.login === true && u.position === "admin",
+        );
+
+        if (!isAdmin) {
+          HospitalView.errorView(new Error("Only admin can view employee"));
           return;
         }
 
         Employee.findAll((err, data) => {
           if (err) {
             HospitalView.errorView(err);
-          } else {
-            HospitalView.showEmployeeView(data!);
+            return;
           }
+
+          HospitalView.showEmployeeView(data!);
         });
+        return;
       }
 
-      if (type === "patient") {
-        const dokter = data?.find((u) => u.login === true);
-        if (dokter?.position !== "dokter") {
-          HospitalView.errorView("Only dokter can see it");
+      HospitalView.errorView(new Error("Unknown show type"));
+    });
+  }
+
+  public static findPatient(obj: string, value: string) {
+    Employee.currentUser((err, data) => {
+      if (err) {
+        HospitalView.errorView(err);
+        return;
+      }
+
+      const isDokter = data?.find(
+        (u) => u.login === true && u.position === "dokter",
+      );
+
+      if (!isDokter) {
+        HospitalView.errorView(new Error("Only dokter can find patient"));
+        return;
+      }
+
+      Patient.findAll((err, data) => {
+        if (err) {
+          HospitalView.errorView(err);
           return;
         }
 
-        Patient.findAll((err, data) => {
-          if (err) {
-            HospitalView.errorView(err);
+        if (obj === "id") {
+          const id = data?.find((u) => u.id === Number(value));
+          if (id) {
+            HospitalView.findPatientBy(id);
           } else {
-            HospitalView.showPatientView(data!);
+            HospitalView.errorView(new Error("Id not found"));
           }
-        });
-      }
+          return;
+        }
+
+        if (obj === "name") {
+          const name = data?.find((u) => u.name === value);
+          if (name) {
+            HospitalView.findPatientBy(name);
+          } else {
+            HospitalView.errorView(new Error("Name not found"));
+          }
+          return;
+        }
+
+        HospitalView.errorView(new Error("Unknown search field"));
+      });
     });
   }
 
   public static help() {
-    console.log(`
-> node index.js register <username> <password> <jabatan> 
-> node index.js login <username> <password>
-> node index.js addPatient <id> <namaPasien> <penyakit1> <penyakit2> ....
-> node index.js updatePatient <id> <namaPasien> <penyakit1> <penyakit2> ....
-> node index.js deletePatient <id> <namaPasien> <penyakit1> <penyakit2> ....
-> node index.js logout
-> node index.js show <employee/patient> 
-> node index.js findPatientBy: <name/id> <namePatient/idPatient>    
-    `);
+    HospitalView.helpView();
   }
 }
+
+export default HospitalController;

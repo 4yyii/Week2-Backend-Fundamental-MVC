@@ -1,163 +1,169 @@
 import * as fs from "node:fs";
 import path from "node:path";
-import { Employee } from "./employee.js";
+import Employee from "./employee.js";
 
-const filePath = path.resolve("src", "db", "patient.json");
-type callback = (err: Error | null, result?: Patient[]) => void;
+interface IPatient {
+  id: number;
+  name: string;
+  diseases: string[];
+}
 
-export class Patient {
-  public id: number;
-  public name: string;
-  public diseases: string[];
+type FetchCallback = (error: Error | null, data?: IPatient[]) => void;
+const dbPatient = path.resolve("src", "db", "patient.json");
 
-  private constructor(id: number, name: string, diseases: string[]) {
+class Patient {
+  constructor(
+    public id: number,
+    public name: string,
+    public diseases: string[],
+  ) {
     this.id = id;
     this.name = name;
     this.diseases = diseases;
   }
 
-  private static checkIsDokter(employee: Employee[]) {
-    const isDokter = employee.find((u) => u.login === true);
-    return isDokter?.position === "dokter";
-  }
-
-  public static findAll(cb: callback) {
-    fs.readFile(filePath, "utf8", (err, data) => {
+  public static findAll(cb: FetchCallback) {
+    fs.readFile(dbPatient, "utf8", (err, data) => {
       if (err) {
-        cb(err);
-      } else {
-        cb(null, JSON.parse(data));
+        return cb(err);
+      }
+
+      try {
+        const patients = data ? JSON.parse(data) : [];
+        cb(err, patients);
+      } catch (err) {
+        cb(err as Error);
       }
     });
   }
 
-  public static saveAll(data: Patient[], cb: callback) {
-    fs.writeFile(filePath, JSON.stringify(data, null, 2), (err) => {
+  public static saveAll(data: IPatient[], cb: FetchCallback) {
+    fs.writeFile(dbPatient, JSON.stringify(data, null, 2), (err) => {
       if (err) {
-        cb(err);
+        return cb(err);
       } else {
-        cb(null, data);
+        cb(err, data);
       }
     });
   }
 
-  public static add(args: string[], cb: callback) {
+  private static ensureDokter(cb: (error: Error | null) => void) {
     Employee.currentUser((err, data) => {
       if (err) {
-        cb(err);
-      } else {
-        if (!this.checkIsDokter(data!)) {
-          cb(new Error("Unauthorized"));
-          return;
-        }
-
-        this.findAll((err, data) => {
-          if (err) {
-            cb(err);
-          } else {
-            const id = Number(args[0]);
-            const name = String(args[1]);
-            const diseases = args.slice(2);
-            const dataPatient = data || [];
-
-            const isPatientExists = data?.find((u) => u.id === id);
-            if (isPatientExists) {
-              console.error(`Patient with id ${id} already exists`);
-              return;
-            }
-
-            const newPatient = new Patient(id, name, diseases);
-            dataPatient.push(newPatient);
-            this.saveAll(dataPatient, (err) => {
-              if (err) {
-                cb(err);
-              } else {
-                cb(null, dataPatient);
-              }
-            });
-          }
-        });
+        return cb(err);
       }
+
+      const isDokter = data?.find(
+        (u) => u.login === true && u.position === "dokter",
+      );
+
+      if (!isDokter) {
+        return cb(new Error("Only dokter are allowed to manage patients"));
+      }
+
+      cb(null);
     });
   }
 
-  public static update(args: string[], cb: callback) {
-    Employee.currentUser((err, data) => {
+  public static add(
+    id: number,
+    name: string,
+    diseases: string[],
+    cb: FetchCallback,
+  ) {
+    this.ensureDokter((err) => {
       if (err) {
-        cb(err);
-      } else {
-        if (!this.checkIsDokter(data!)) {
-          cb(new Error("Unauthorized"));
-          return;
+        return cb(err);
+      }
+
+      this.findAll((err, data) => {
+        if (err) {
+          return cb(err);
         }
 
-        this.findAll((err, data) => {
+        data = data ?? [];
+        const idExists = data.find((u) => u.id === id);
+        if (idExists) {
+          return cb(new Error("ID already exists"));
+        }
+
+        const newPatient = new Patient(id, name, diseases);
+        data.push(newPatient);
+
+        this.saveAll(data, (err) => {
           if (err) {
-            cb(err);
+            return cb(err);
           } else {
-            const id = Number(args[0]);
-            const name = String(args[1]);
-            const diseases = args.slice(2);
-            const dataPatient = data || [];
-
-            const isPatientExists = data?.find((u) => u.id === id);
-            if (!isPatientExists) {
-              console.error(`Patient with id ${id} not found`);
-              return;
-            } else {
-              isPatientExists.id = id;
-              isPatientExists.name = name;
-              isPatientExists.diseases = diseases;
-            }
-
-            this.saveAll(dataPatient, (err) => {
-              if (err) {
-                cb(err);
-              } else {
-                cb(null, dataPatient);
-              }
-            });
+            cb(err, data);
           }
         });
-      }
+      });
     });
   }
 
-  public static delete(args: string[], cb: callback) {
-    Employee.currentUser((err, data) => {
+  public static update(
+    id: number,
+    name: string,
+    diseases: string[],
+    cb: FetchCallback,
+  ) {
+    this.ensureDokter((err) => {
       if (err) {
-        cb(err);
-      } else {
-        if (!this.checkIsDokter(data!)) {
-          cb(new Error("Unauthorized"));
-          return;
+        return cb(err);
+      }
+
+      this.findAll((err, data) => {
+        if (err) {
+          return cb(err);
         }
 
-        this.findAll((err, data) => {
+        const isMatch = data?.find((u) => u.id === id);
+        if (!isMatch) {
+          return cb(new Error("ID not found"));
+        }
+
+        isMatch.name = name;
+        isMatch.diseases = diseases;
+
+        this.saveAll(data!, (err) => {
           if (err) {
-            cb(err);
+            return cb(err);
           } else {
-            const id = Number(args[0]);
-            const dataPatient = data || [];
-
-            const isPatientExists = data?.find((u) => u.id === id);
-            if (!isPatientExists) {
-              console.error(`Patient with id ${id} not found`);
-              return;
-            }
-
-            const deletePatient = dataPatient.filter((u) => u.id !== id);
-
-            this.saveAll(deletePatient, (err) => {
-              if (err) {
-                cb(err);
-              } else {
-                cb(null, deletePatient);
-              }
-            });
+            cb(err, data);
           }
         });
+      });
+    });
+  }
+
+  public static delete(id: number, cb: FetchCallback) {
+    this.ensureDokter((err) => {
+      if (err) {
+        return cb(err);
       }
+
+      this.findAll((err, data) => {
+        if (err) {
+          return cb(err);
+        }
+
+        const isMatch = data?.find((u) => u.id === id);
+        if (!isMatch) {
+          return cb(new Error("Id not found"));
+        }
+
+        const remove = data?.filter((u) => u.id !== id);
+
+        this.saveAll(remove!, (err) => {
+          if (err) {
+            return cb(err);
+          } else {
+            cb(err, data);
+          }
+        });
+      });
     });
   }
 }
+
+export default Patient;

@@ -1,53 +1,67 @@
-import { Employee } from "@employee/employee.js";
-import type { Patient } from "@employee/patient.js";
+import type Employee from "@employee/employee.js";
+import type Patient from "@employee/patient.js";
 
-export class HospitalView {
-  public static errorView(err: Error | string) {
-    console.log(err);
+class HospitalView {
+  public static registerView(newEmployee: Employee[]) {
+    const employee = newEmployee[newEmployee.length - 1];
+    console.log(
+      `Register success. Welcome ${employee?.username} (${employee?.position})`,
+    );
   }
 
-  public static registerView(employee: Employee[]) {
-    const data = employee[employee.length - 1];
-    console.log(
-      `Save data success. Welcome ${data?.username} (${data?.position}) | Total employee: ${employee.length}`,
-    );
+  public static errorView(err: Error) {
+    console.log(err.message);
   }
 
   public static loginView(employee: Employee[]) {
-    const data = employee.find((u) => u.login === true);
-    if (data) {
-      console.log(`Login success. Hello ${data?.username} (${data.position})`);
-    }
+    const emp = employee[employee.length - 1];
+    console.log(`Login success. Hello ${emp?.username} (${emp?.position})`);
   }
 
   public static logoutView() {
-    console.log("Logout success. GoodBye!");
+    console.log(`Logout success. Goodbye!`);
   }
 
-  public static addPatientView(patient: Patient[]) {
-    const data = patient[patient.length - 1];
-    console.log(
-      `Successfully added patient ${data?.name} with id: ${data?.id}`,
-    );
+  public static addPatientView(newPatient: Patient[]) {
+    const patient = newPatient[newPatient.length - 1];
+    console.log(`Successfully added a patient (${patient?.name})`);
   }
 
-  public static updatePatientView(patient: Patient[]) {
-    console.log(`Successfully updated patient`);
+  public static updatePatientView() {
+    console.log("Update success");
   }
 
-  public static deletePatientView(patient: Patient[]) {
-    console.log(`Successfully deleted patient`);
+  public static deletePatientView() {
+    console.log("Delete success");
   }
 
-  public static findPatientView(patient: Patient[]) {
-    console.table(patient);
+  public static showEmployeeView(employee: Employee[]) {
+    console.table(employee);
   }
 
   public static showPatientView(patient: Patient[]) {
     console.table(patient);
   }
 
-  public static showEmployeeView(employee: Employee[]) {
-    console.table(employee);
+  public static findPatientBy(patient: Patient) {
+    console.log(patient);
+  }
+
+  public static helpView() {
+    console.log(`
+==========================
+HOSPITAL INTERFACE COMMAND
+==========================
+node index.js register <username> <password> <jabatan>
+node index.js login <username> <password>
+node index.js addPatient <id> <namaPasien> <penyakit1> <penyakit2> ....
+node index.js updatePatient <id> <namaPasien> <penyakit1> <penyakit2> ....
+node index.js deletePatient <id>
+node index.js logout
+node index.js show <employee/patient>
+node index.js findPatientBy: <name/id> <namePatient/idPatient>
+    `);
   }
 }
+
+export default HospitalView;

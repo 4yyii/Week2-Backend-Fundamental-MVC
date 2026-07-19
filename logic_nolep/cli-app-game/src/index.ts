@@ -94,7 +94,6 @@ async function login() {
     return startMenu();
   } else {
     currentUser = isMatch;
-    await saveUsers();
     console.log(chalk.green(`Login success. Hello ${username}`));
     return mainMenu();
   }
@@ -125,16 +124,28 @@ async function mainMenu() {
 }
 
 async function playGame() {
+  if (!currentUser) {
+    console.log(chalk.red("Anda harus login terlebih dahulu"));
+    return startMenu();
+  }
+  const user = currentUser;
+
   console.log(chalk.yellow("\n--- Tebak Angka ---"));
   console.log("Tebak angka antara 1 dan 100");
 
   const randomNum = Math.floor(Math.random() * 100) + 1;
-  let temp = 0;
+  let attempts = 0;
 
   async function makeGuess() {
     const guessNum = await question("Tebakan Anda: ");
     const num = Number(guessNum);
-    temp++;
+
+    if (Number.isNaN(num) || num < 1 || num > 100) {
+      console.log(chalk.red("Masukkan angka antara 1 dan 100"));
+      return makeGuess();
+    }
+
+    attempts++;
 
     if (num < randomNum) {
       console.log(chalk.red("Terlalu rendah!"));
@@ -145,34 +156,35 @@ async function playGame() {
     } else {
       console.log(
         chalk.green(
-          `Selamat! Anda menebak dengan benar dalam ${temp} percobaan`,
+          `Selamat! Anda menebak dengan benar dalam ${attempts} percobaan`,
         ),
       );
-      if (
-        currentUser?.highestScore === 0 ||
-        temp < currentUser?.highestScore!
-      ) {
+      if (user.highestScore === 0 || attempts < user.highestScore) {
         console.log(chalk.green("Ini adalah skor tertinggi baru Anda!"));
-        currentUser!.highestScore = temp;
+        user.highestScore = attempts;
         await saveUsers();
-        return mainMenu();
       }
       return mainMenu();
     }
   }
-  makeGuess();
+  return makeGuess();
 }
 
 async function showLeaderBoard() {
   console.log(chalk.yellow("\n--- Papan Skor Top (10) ---"));
 
-  const sortData = users
-    .filter((u) => u.highestScore !== null)
-    .sort((a, b) => a.highestScore - b.highestScore);
+  const topScores = users
+    .filter((u) => u.highestScore > 0)
+    .sort((a, b) => a.highestScore - b.highestScore)
+    .slice(0, 10);
 
-  sortData.forEach((u, i) => {
-    console.log(`${i + 1}. ${u.username}: ${u.highestScore} percobaan`);
-  });
+  if (topScores.length === 0) {
+    console.log(chalk.gray("Belum ada skor yang tercatat."));
+  } else {
+    topScores.forEach((u, i) => {
+      console.log(`${i + 1}. ${u.username}: ${u.highestScore} percobaan`);
+    });
+  }
   return mainMenu();
 }
 

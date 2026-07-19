@@ -1,19 +1,20 @@
-import { decrypt, encrypt } from "./cryptoApp.js";
+import { encrypt, decrypt } from "./cryptoApp.js";
 import scheduleTask from "./scheduleApp.js";
 
 console.log("--- Testing cryptoApp ---");
 
-const key: string = "mysecretkey";
-
-// encrypt test
-const encryptedText = encrypt("Hello, World!", key);
+// Test Case 1
+const encryptedText = encrypt("Hello, World!", "mysecretkey");
 console.log("Encrypted Text:", encryptedText);
+// Output: Encrypted: ... (ciphertext in hexadecimal)
 
-// decrypt test
-const decryptedText = decrypt(encryptedText, key);
+// Test Case 2
+const decryptedText = decrypt(encryptedText, "mysecretkey");
 console.log("Decrypted Text:", decryptedText);
+// Output: Decrypted: Hello, World!
 
 console.log("--- Testing scheduleApp ---");
 
-// schedule test
-scheduleTask("War");
+// Test Case 3
+scheduleTask();
+// Output: Scheduled task for: ... (future date and time)

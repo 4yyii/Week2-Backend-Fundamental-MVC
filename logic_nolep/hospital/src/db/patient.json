@@ -1,12 +1,17 @@
 [
   {
     "id": 1,
-    "name": "dudung",
-    "diseases": ["pilek"]
+    "name": "ninung",
+    "diseases": [
+      "diare",
+      "demam"
+    ]
   },
   {
     "id": 2,
-    "name": "clancy",
-    "diseases": ["demam", "diare"]
+    "name": "dudung",
+    "diseases": [
+      "diare"
+    ]
   }
 ]
